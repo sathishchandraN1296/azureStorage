@@ -1,0 +1,715 @@
+%%[
+
+VAR @submitted, @subscriberKey, @firstName, @lastName, @email, @mobile
+VAR @nationality, @uaeResident, @marketingConsent
+VAR @receiptJSON, @totalAmount, @entryCount
+
+SET @submitted = RequestParameter("submitted")
+
+IF @submitted == "true" THEN
+
+    SET @subscriberKey = GUID()
+
+    SET @firstName = RequestParameter("firstName")
+    SET @lastName = RequestParameter("lastName")
+    SET @email = RequestParameter("email")
+    SET @mobile = RequestParameter("mobile")
+
+    SET @nationality = RequestParameter("nationality")
+    SET @uaeResident = RequestParameter("uaeResident")
+    SET @marketingConsent = RequestParameter("marketingConsent")
+
+    SET @receiptJSON = RequestParameter("receiptJSON")
+    SET @totalAmount = RequestParameter("totalAmount")
+    SET @entryCount = RequestParameter("entryCount")
+
+    InsertDE(
+
+        "AutumnWinterSpend2026",
+
+        "SubscriberKey", @subscriberKey,
+        "FirstName", @firstName,
+        "LastName", @lastName,
+        "Email", @email,
+        "Mobile", @mobile,
+        "Nationality", @nationality,
+        "UAEResident", @uaeResident,
+        "MarketingConsent", @marketingConsent,
+        "ReceiptJSON", @receiptJSON,
+        "TotalAmount", @totalAmount,
+        "EntryCount", @entryCount,
+        "CreatedDate", Now()
+
+    )
+
+ENDIF
+
+]%%
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>Autumn/Winter Spend & Win 2026</title>
+
+<style>
+
+body {
+
+    font-family: Arial, sans-serif;
+    background-color: #8c673d;
+    margin: 0;
+    padding: 20px;
+
+}
+
+.container {
+
+    max-width: 950px;
+    margin: auto;
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+
+}
+
+h2, h3 {
+
+    text-align: center;
+
+}
+
+.row {
+
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+
+}
+
+.col {
+
+    flex: 1;
+    min-width: 250px;
+
+}
+
+input,
+select {
+
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+
+}
+
+.receipt-block {
+
+    border: 1px solid #dddddd;
+    background: #f9f9f9;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+
+}
+
+.upload-url {
+
+    font-size: 12px;
+    color: green;
+    margin-top: 10px;
+    word-break: break-all;
+
+}
+
+button {
+
+    background: orange;
+    border: none;
+    padding: 12px 20px;
+    cursor: pointer;
+    border-radius: 4px;
+
+}
+
+.summary {
+
+    margin-top: 20px;
+    font-weight: bold;
+
+}
+
+.submit-btn {
+
+    width: 100%;
+    margin-top: 25px;
+
+}
+
+.success-message {
+
+    text-align: center;
+    color: green;
+    font-size: 18px;
+    margin-bottom: 20px;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+%%[ IF @submitted == "true" THEN ]%%
+
+<div class="success-message">
+
+    Thank you! Your entry has been submitted successfully.
+
+</div>
+
+%%[ ENDIF ]%%
+
+<h2>Autumn/Winter Spend & Win 2026</h2>
+
+<form method="post" id="promoForm">
+
+    <input type="hidden"
+           name="submitted"
+           value="true">
+
+    <input type="hidden"
+           name="receiptJSON"
+           id="receiptJSON">
+
+    <input type="hidden"
+           name="totalAmount"
+           id="totalAmount">
+
+    <input type="hidden"
+           name="entryCount"
+           id="entryCount">
+
+    <h3>Customer Information</h3>
+
+    <div class="row">
+
+        <div class="col">
+
+            <input type="text"
+                   name="firstName"
+                   placeholder="First Name"
+                   required>
+
+        </div>
+
+        <div class="col">
+
+            <input type="text"
+                   name="lastName"
+                   placeholder="Last Name"
+                   required>
+
+        </div>
+
+    </div>
+
+    <div class="row">
+
+        <div class="col">
+
+            <input type="email"
+                   name="email"
+                   placeholder="Email Address"
+                   required>
+
+        </div>
+
+        <div class="col">
+
+            <input type="text"
+                   name="mobile"
+                   placeholder="Mobile Number"
+                   required>
+
+        </div>
+
+    </div>
+
+    <div class="row">
+
+        <div class="col">
+
+            <select name="nationality" required>
+
+                <option value="">Select Nationality</option>
+
+                <option>India</option>
+                <option>UAE</option>
+                <option>USA</option>
+                <option>UK</option>
+                <option>Saudi Arabia</option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+    <div class="row">
+
+        <label>
+            <input type="radio"
+                   name="uaeResident"
+                   value="Yes"
+                   required> Yes
+        </label>
+
+        <label>
+            <input type="radio"
+                   name="uaeResident"
+                   value="No"> No
+        </label>
+
+    </div>
+
+    <hr>
+
+    <h3>Receipts</h3>
+
+    <div id="receiptContainer"></div>
+
+    <button type="button"
+            onclick="addReceipt()">
+
+        + Add Receipt
+
+    </button>
+
+    <div class="summary">
+
+        <p>
+            Total Receipt Amount:
+            AED
+            <span id="displayTotal">0.00</span>
+        </p>
+
+        <p>
+            Total Receipt Entries:
+            <span id="displayEntries">0</span>
+        </p>
+
+    </div>
+
+    <hr>
+
+    <h3>Marketing Consent</h3>
+
+    <div class="row">
+
+        <label>
+            <input type="radio"
+                   name="marketingConsent"
+                   value="Yes"
+                   required> Yes
+        </label>
+
+        <label>
+            <input type="radio"
+                   name="marketingConsent"
+                   value="No"> No
+        </label>
+
+    </div>
+
+    <button type="submit"
+            class="submit-btn">
+
+        Submit
+
+    </button>
+
+</form>
+
+</div>
+
+<script>
+
+/* =========================================
+   AZURE CONFIGURATION
+========================================= */
+
+const STORAGE_ACCOUNT = "marketingcloudreceipts";
+
+const CONTAINER_NAME = "recepits";
+
+const SAS_TOKEN = "sv=2026-02-06&ss=bfqt&srt=sco&sp=rwlacupitfx&se=2030-05-22T21:00:25Z&st=2026-05-22T12:45:25Z&spr=https&sig=lrWz2cOxFwogL%2Fy9obRZhkHc5eMR%2FBjiYxLU1llijPg%3D";
+
+/* =========================================
+   GLOBAL VARIABLES
+========================================= */
+
+let receiptCounter = 0;
+
+/* =========================================
+   ADD RECEIPT BLOCK
+========================================= */
+
+function addReceipt() {
+
+    receiptCounter++;
+
+    const block = document.createElement('div');
+
+    block.className = 'receipt-block';
+
+    block.innerHTML = `
+
+        <h4>Receipt #${receiptCounter}</h4>
+
+        <div class="row">
+
+            <div class="col">
+
+                <input type="date"
+                       class="receipt-date"
+                       required>
+
+            </div>
+
+            <div class="col">
+
+                <input type="time"
+                       class="receipt-time"
+                       required>
+
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col">
+
+                <input type="number"
+                       class="receipt-amount"
+                       placeholder="Receipt Amount"
+                       step="0.01"
+                       required>
+
+            </div>
+
+            <div class="col">
+
+                <input type="text"
+                       class="store-name"
+                       placeholder="Store Name"
+                       required>
+
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col">
+
+                <input type="file"
+                       accept=".jpg,.jpeg,.png,.pdf"
+                       onchange="uploadFile(this)"
+                       required>
+
+            </div>
+
+        </div>
+
+        <div class="upload-url"></div>
+
+        <input type="hidden"
+               class="file-url">
+
+    `;
+
+    document
+        .getElementById('receiptContainer')
+        .appendChild(block);
+
+    block
+        .querySelector('.receipt-amount')
+        .addEventListener('input', updateSummary);
+
+    updateSummary();
+
+}
+
+/* =========================================
+   UPLOAD FILE TO AZURE
+========================================= */
+
+async function uploadFile(input) {
+
+    const file = input.files[0];
+
+    if (!file) return;
+
+    const block = input.closest('.receipt-block');
+
+    try {
+
+        /* =========================
+           SHOW LOADING
+        ========================= */
+
+        block.querySelector('.upload-url').innerHTML = `
+            <span style="color:orange;font-weight:bold;">
+                Uploading file...
+            </span>
+        `;
+
+        /* =========================
+           FILE VALIDATION
+        ========================= */
+
+        const allowedTypes = [
+            'image/jpeg',
+            'image/png',
+            'application/pdf'
+        ];
+
+        if (!allowedTypes.includes(file.type)) {
+
+            alert('Only JPG, PNG and PDF files allowed');
+
+            return;
+
+        }
+
+        /* =========================
+           FILE SIZE VALIDATION
+        ========================= */
+
+        if (file.size > 5000000) {
+
+            alert('Maximum file size is 5MB');
+
+            return;
+
+        }
+
+        /* =========================
+           UNIQUE FILE NAME
+        ========================= */
+
+        const uniqueFileName =
+            Date.now() + "_" + file.name.replace(/\s/g, "_");
+
+        /* =========================
+           AZURE UPLOAD URL
+        ========================= */
+
+        const uploadURL =
+        `https://${STORAGE_ACCOUNT}.blob.core.windows.net/${CONTAINER_NAME}/${uniqueFileName}?${SAS_TOKEN}`;
+
+        console.log("Upload URL:", uploadURL);
+
+        /* =========================
+           UPLOAD FILE
+        ========================= */
+
+        const response = await fetch(uploadURL, {
+
+            method: 'PUT',
+
+            headers: {
+
+                'x-ms-blob-type': 'BlockBlob',
+                'Content-Type': file.type
+
+            },
+
+            body: file
+
+        });
+
+        console.log("Azure Upload Status:", response.status);
+
+        if (!response.ok) {
+
+            const errorText = await response.text();
+
+            console.log(errorText);
+
+            throw new Error("Azure upload failed");
+
+        }
+
+        /* =========================
+           FINAL PUBLIC FILE URL
+        ========================= */
+
+        const finalFileURL =
+        `https://${STORAGE_ACCOUNT}.blob.core.windows.net/${CONTAINER_NAME}/${uniqueFileName}`;
+
+        console.log("Final File URL:", finalFileURL);
+
+        /* =========================
+           SAVE URL
+        ========================= */
+
+        block.querySelector('.file-url').value =
+            finalFileURL;
+
+        /* =========================
+           DISPLAY URL
+        ========================= */
+
+        block.querySelector('.upload-url').innerHTML = `
+
+            <span style="color:green;font-weight:bold;">
+                File Uploaded Successfully
+            </span>
+
+            <br><br>
+
+            <a href="${finalFileURL}"
+               target="_blank"
+               style="color:blue;">
+
+               View Uploaded File
+
+            </a>
+
+        `;
+
+    }
+    catch(error) {
+
+        console.error(error);
+
+        block.querySelector('.upload-url').innerHTML = `
+
+            <span style="color:red;font-weight:bold;">
+                Upload Failed
+            </span>
+
+        `;
+
+        alert('Azure upload failed');
+
+    }
+
+}
+
+/* =========================================
+   UPDATE SUMMARY
+========================================= */
+
+function updateSummary() {
+
+    let total = 0;
+
+    const receipts =
+
+        document.querySelectorAll('.receipt-block');
+
+    receipts.forEach(block => {
+
+        total += parseFloat(
+
+            block.querySelector('.receipt-amount').value || 0
+
+        );
+
+    });
+
+    document.getElementById('displayTotal')
+        .innerText = total.toFixed(2);
+
+    document.getElementById('displayEntries')
+        .innerText = receipts.length;
+
+}
+
+/* =========================================
+   FORM SUBMIT
+========================================= */
+
+document
+.getElementById('promoForm')
+.addEventListener('submit', function() {
+
+    const receipts = [];
+
+    let totalAmount = 0;
+
+    document
+    .querySelectorAll('.receipt-block')
+    .forEach((block, index) => {
+
+        const amount = parseFloat(
+
+            block.querySelector('.receipt-amount').value || 0
+
+        );
+
+        totalAmount += amount;
+
+        receipts.push({
+
+            receiptNumber: index + 1,
+
+            date:
+                block.querySelector('.receipt-date').value,
+
+            time:
+                block.querySelector('.receipt-time').value,
+
+            amount: amount,
+
+            store:
+                block.querySelector('.store-name').value,
+
+            fileUrl:
+                block.querySelector('.file-url').value
+
+        });
+
+    });
+
+    document.getElementById('receiptJSON').value =
+
+        JSON.stringify(receipts);
+
+    document.getElementById('totalAmount').value =
+
+        totalAmount.toFixed(2);
+
+    document.getElementById('entryCount').value =
+
+        receipts.length;
+
+});
+
+/* =========================================
+   INITIAL LOAD
+========================================= */
+
+addReceipt();
+
+</script>
+
+</body>
+
+</html>
